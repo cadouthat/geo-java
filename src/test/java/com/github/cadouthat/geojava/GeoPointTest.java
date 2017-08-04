@@ -8,7 +8,7 @@ import static org.junit.Assert.fail;
 
 public class GeoPointTest {
 
-    final double TOLERANCE = 0.0000001;
+    static final double TOLERANCE = 0.0000001;
 
     void assertPoint(String description, GeoPoint point, double lat, double lon) {
         assertEquals(String.format("latitude error%s", description), lat, point.getLatDegrees(), TOLERANCE);

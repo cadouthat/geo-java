@@ -5,7 +5,7 @@ package com.github.cadouthat.geojava;
  */
 public class GeoArc {
 
-    final double EARTH_RADIUS_METRES = 6371000;
+    public static final double EARTH_RADIUS_METRES = 6371000;
 
     /**
      * First endpoint of the arc
