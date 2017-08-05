@@ -22,17 +22,21 @@ public class GeoArc {
     }
 
     /**
-     * Calculates the length of the arc along the Earth's surface using a formula from
-     * https://en.wikipedia.org/wiki/Great-circle_distance
+     * Calculates the length of the arc along the Earth's surface using the haversine formula
      *
      * @return distance in metres
      */
     public double length() {
-        double dLon = Math.abs(pointA.lon - pointB.lon);
-        double sinPart = Math.sin(pointA.lat) * Math.sin(pointB.lat);
-        double cosPart = Math.cos(pointA.lat) * Math.cos(pointB.lat) * Math.cos(dLon);
-        double spanAngle = Math.acos(sinPart + cosPart);
-        return EARTH_RADIUS_METRES * spanAngle;
+        double dLat = pointB.lat - pointA.lat;
+        double dLon = pointB.lon - pointA.lon;
+        double sinHaLat = Math.sin(dLat / 2);
+        double sinHaLon = Math.sin(dLon / 2);
+        double h = sinHaLat * sinHaLat +
+                Math.cos(pointA.lat) * Math.cos(pointB.lat) * sinHaLon * sinHaLon;
+        if (h > 1) h = 1;
+        if (h < 0) h = 0;
+        double theta = Math.asin(Math.sqrt(h));
+        return EARTH_RADIUS_METRES * 2 * theta;
     }
 
     /**
