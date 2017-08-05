@@ -1,5 +1,7 @@
 package com.github.cadouthat.geojava;
 
+import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
+
 /**
  * Represents a point on the Earth's surface, defined by latitude and longitude
  */
@@ -22,7 +24,6 @@ public class GeoPoint {
      * Without changing the final position, bring the lat/lon angles into [-PI/2, PI/2]/(-PI, PI] ranges
      */
     void normalize() {
-
         // Bring latitude into (-TWO_PI, TWO_PI)
         lat = lat % TWO_PI;
         // Bring latitude into [-PI, PI]
@@ -43,14 +44,30 @@ public class GeoPoint {
         if (lon <= -PI) lon += TWO_PI;
     }
 
+    /**
+     * Construct from lat/lon in degrees
+     */
     public GeoPoint(double latDegrees, double lonDegrees) {
         this.lat = latDegrees / 180 * Math.PI;
         this.lon = lonDegrees / 180 * Math.PI;
         normalize();
     }
+
+    /**
+     * Construct from lat/lon strings in degrees
+     */
     public GeoPoint(String latDegrees, String lonDegrees) {
         this.lat = Double.parseDouble(latDegrees) / 180 * Math.PI;
         this.lon = Double.parseDouble(lonDegrees) / 180 * Math.PI;
+        normalize();
+    }
+
+    /**
+     * Construct from cartesian coordinates
+     */
+    public GeoPoint(Vector3D vec) {
+        this.lat = vec.getDelta();
+        this.lon = vec.getAlpha();
         normalize();
     }
 
@@ -60,6 +77,15 @@ public class GeoPoint {
 
     public double getLonDegrees() {
         return lon / Math.PI * 180;
+    }
+
+    /**
+     * Get the location of the point in cartesian coordinates, with the center of the sphere as the origin
+     *
+     * @return a unit-length vector
+     */
+    public Vector3D toCartesian() {
+        return new Vector3D(lon, lat);
     }
 
     /**

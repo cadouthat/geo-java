@@ -2,7 +2,7 @@ package com.github.cadouthat.geojava;
 
 import org.junit.Test;
 
-import static junit.framework.TestCase.assertEquals;
+import static org.junit.Assert.*;
 
 public class GeoArcTest {
 
@@ -58,6 +58,53 @@ public class GeoArcTest {
     @Test
     public void testAcrossEquatorLength() {
         assertArcLength(40, 120, -20, 140, 6986360);
+    }
+
+    @Test
+    public void testContain() {
+        GeoPoint a = new GeoPoint(34, 120);
+        GeoPoint b = new GeoPoint(-20, 120);
+        GeoPoint c = new GeoPoint(-15, 120);
+        GeoArc arc = new GeoArc(a, b);
+        assertTrue("should contain endpoints", arc.contains(a) && arc.contains(b));
+        assertTrue("should contain inner point", arc.contains(c));
+    }
+
+    @Test
+    public void testNonContain() {
+        GeoPoint a = new GeoPoint(34, 120);
+        GeoPoint b = new GeoPoint(-20, 120);
+        GeoPoint c = new GeoPoint(35, 120);
+        GeoPoint d = new GeoPoint(-25, 120);
+        GeoPoint e = new GeoPoint(20, -60);
+        GeoArc arc = new GeoArc(a, b);
+        assertFalse("should not contain upper point", arc.contains(c));
+        assertFalse("should not contain lower point", arc.contains(d));
+        assertFalse("should not contain back point", arc.contains(e));
+    }
+
+    @Test
+    public void testNonIntersectAntipodes() {
+        GeoArc arcA = new GeoArc(new GeoPoint(90, 150), new GeoPoint(-90, 150));
+        GeoArc arcB = new GeoArc(new GeoPoint(0, 140), new GeoPoint(0, 160));
+        assertNull("vertical antipodes should have no solution", arcA.intersect(arcB));
+        arcA = new GeoArc(new GeoPoint(0, 0), new GeoPoint(0, 180));
+        arcB = new GeoArc(new GeoPoint(-15, 100), new GeoPoint(15, 100));
+        assertNull("horizontal antipodes should have no solution", arcA.intersect(arcB));
+    }
+
+    @Test
+    public void testNonIntersectCoplanar() {
+        GeoArc arcA = new GeoArc(new GeoPoint(15, 0), new GeoPoint(15, 15));
+        GeoArc arcB = new GeoArc(new GeoPoint(15, 5), new GeoPoint(15, 20));
+        assertNull("should have infinite intersections", arcA.intersect(arcB));
+    }
+
+    @Test
+    public void testIntersectNearCoplanar() {
+        GeoArc arcA = new GeoArc(new GeoPoint(16, 0), new GeoPoint(14, 50));
+        GeoArc arcB = new GeoArc(new GeoPoint(15, 0), new GeoPoint(15, 50));
+        assertNotNull("should intersect", arcA.intersect(arcB));
     }
 
 }

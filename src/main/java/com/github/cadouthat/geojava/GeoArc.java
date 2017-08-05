@@ -1,9 +1,13 @@
 package com.github.cadouthat.geojava;
 
+import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
+
 /**
  * Represents the shortest path between two points on a great circle on Earth's surface
  */
 public class GeoArc {
+
+    static final double TOLERANCE = 0.01;
 
     public static final double EARTH_RADIUS_METRES = 6371000;
 
@@ -16,6 +20,9 @@ public class GeoArc {
      */
     GeoPoint pointB;
 
+    /**
+     * Construct directly from start and end point
+     */
     public GeoArc(GeoPoint pointA, GeoPoint pointB) {
         this.pointA = pointA;
         this.pointB = pointB;
@@ -29,102 +36,77 @@ public class GeoArc {
     public double length() {
         double dLat = pointB.lat - pointA.lat;
         double dLon = pointB.lon - pointA.lon;
+
         double sinHaLat = Math.sin(dLat / 2);
         double sinHaLon = Math.sin(dLon / 2);
+
         double h = sinHaLat * sinHaLat +
                 Math.cos(pointA.lat) * Math.cos(pointB.lat) * sinHaLon * sinHaLon;
+
+        // Clamp rounding errors to real range
         if (h > 1) h = 1;
         if (h < 0) h = 0;
+
         double theta = Math.asin(Math.sqrt(h));
         return EARTH_RADIUS_METRES * 2 * theta;
     }
 
     /**
-     * Calculate the initial bearing from pointA toward pointB using a formula from
-     * http://mathforum.org/library/drmath/view/55417.html
-     *
-     * @return bearing in radians
+     * Given a point on the same great circle, determine whether it lies within this arc
      */
-    public double initialBearing() {
-        double dLon = pointB.lon - pointA.lon;
-        double y = Math.sin(dLon) * Math.cos(pointB.lat);
-        double x = Math.cos(pointA.lat) * Math.sin(pointB.lat) -
-                Math.sin(pointA.lat) * Math.cos(pointB.lat) * Math.cos(dLon);
-        return Math.atan2(y, x);
+    public boolean contains(GeoPoint p) {
+        // Get the arc length between the point and each endpoint
+        double lenFromA = new GeoArc(pointA, p).length();
+        double lenFromB = new GeoArc(pointB, p).length();
+        // If the point is on the arc, these lengths should sum to the total length
+        double sum = this.length() - lenFromA - lenFromB;
+        return Math.abs(sum) < TOLERANCE;
     }
 
     /**
-     * Converts the result of {@link #initialBearing} to degrees
+     * Determine point of intersection with another arc
      *
-     * @return bearing in degrees
-     */
-    public double initialBearingDegrees() {
-        return this.initialBearing() / Math.PI * 180;
-    }
-
-    /**
-     * Determine intersection with another arc using formulas from
-     * http://www.edwilliams.org/avform.htm#Intersection
-     *
-     * @return the point of intersection, or null if the arcs do not intersect
+     * @return point of intersection, or null if there is no unique intersection
      */
     public GeoPoint intersect(GeoArc arcB) {
         GeoArc arcA = this;
 
-        GeoPoint startA = arcA.pointA;
-        GeoPoint startB = arcB.pointA;
+        // If either arc is zero-length, no solution exists
+        if (arcA.length() < TOLERANCE) return null;
+        if (arcB.length() < TOLERANCE) return null;
 
-        double bearingA = arcA.initialBearing();
-        double bearingB = arcB.initialBearing();
-        double dLat = startB.lat - startA.lat;
-        double dLon = startB.lon - startA.lon;
+        // Convert points to cartesian
+        Vector3D p1 = arcA.pointA.toCartesian();
+        Vector3D p2 = arcA.pointB.toCartesian();
+        Vector3D p3 = arcB.pointA.toCartesian();
+        Vector3D p4 = arcB.pointB.toCartesian();
 
-        double dLatSin = Math.sin(dLat / 2);
-        double dLonSin = Math.sin(dLon / 2);
-        double deltaSinSq = dLatSin * dLatSin +
-                Math.cos(startA.lat) * Math.cos(startB.lat) * dLonSin * dLonSin;
-        double delta = 2 * Math.asin(Math.sqrt(deltaSinSq));
-        if (delta == 0) return null;
+        // Determine planes on which arcs lie
+        Vector3D vA = Vector3D.crossProduct(p1, p2);
+        Vector3D vB = Vector3D.crossProduct(p3, p4);
 
-        double thetaACosDenom = Math.sin(delta) * Math.cos(startA.lat);
-        if (thetaACosDenom == 0) return null;
-        double thetaACos = (Math.sin(startB.lat) - Math.sin(startA.lat) * Math.cos(delta)) / thetaACosDenom;
-        if (Math.abs(thetaACos) > 1) return null;
-        double thetaA = Math.acos(thetaACos);
+        // Determine line where planes intersect (which lies between points of circle intersection)
+        Vector3D v = Vector3D.crossProduct(vA, vB);
+        double vLenSq = v.getNormSq();
 
-        double thetaBCosDenom = Math.sin(delta) * Math.cos(startB.lat);
-        if (thetaBCosDenom == 0) return null;
-        double thetaBCos = (Math.sin(startA.lat) - Math.sin(startB.lat) * Math.cos(delta)) / thetaBCosDenom;
-        if (Math.abs(thetaBCos) > 1) return null;
-        double thetaB = Math.acos(thetaBCos);
+        // A zero vector may result from antipodal points or arcs on the same plane, both have no solution
+        if (vLenSq < TOLERANCE * TOLERANCE) return null;
 
-        double thetaAB = thetaA;
-        double thetaBA = thetaB;
-        if (Math.sin(startB.lon - startA.lon) <= 0) {
-            thetaAB = 2 * Math.PI - thetaAB;
+        // Normalize to unit length, which will result in a point on the sphere surface
+        v = v.scalarMultiply(1 / Math.sqrt(vLenSq));
+
+        // Convert the intersection points from cartesian to GeoPoint
+        GeoPoint s1 = new GeoPoint(v);
+        GeoPoint s2 = new GeoPoint(v.negate());
+
+        // If one of the points lies on both arcs, it is the solution
+        if (arcA.contains(s1) && arcB.contains(s1)) {
+            return s1;
         }
-        else {
-            thetaBA = 2 * Math.PI - thetaBA;
+        if (arcA.contains(s2) && arcB.contains(s2)) {
+            return s2;
         }
 
-        double alphaA = (bearingA - thetaAB + Math.PI) % (2 * Math.PI) - Math.PI;
-        double alphaB = (thetaBA - bearingB + Math.PI) % (2 * Math.PI) - Math.PI;
-
-        if (Math.sin(alphaA) == 0 && Math.sin(alphaB) == 0) return null;
-        if (Math.sin(alphaA) * Math.sin(alphaB) < 0) return null;
-
-        double alphaC = Math.acos(-Math.cos(alphaA) * Math.cos(alphaB) +
-                Math.sin(alphaA) * Math.sin(alphaB) * Math.cos(delta));
-        double deltaC = Math.atan2(Math.sin(delta) * Math.sin(alphaA) * Math.sin(alphaB),
-                Math.cos(alphaB) + Math.cos(alphaA) * Math.cos(alphaC));
-        double latC = Math.asin(Math.sin(startA.lat) * Math.cos(deltaC) +
-                Math.cos(startA.lat) * Math.sin(deltaC) * Math.cos(bearingA));
-        double dLonC = Math.atan2(Math.sin(bearingA) * Math.sin(deltaC) * Math.cos(startA.lat),
-                Math.cos(deltaC) - Math.sin(startA.lat) * Math.sin(latC));
-        double lonC = startA.lon + dLonC;
-
-        //TODO test arc boundaries
-
-        return new GeoPoint(latC / Math.PI * 180, lonC / Math.PI * 180);
+        return null;
     }
 }

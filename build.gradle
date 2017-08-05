@@ -14,6 +14,8 @@ repositories {
 }
 
 dependencies {
+    implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
+
     testImplementation 'junit:junit:4.12'
 }
 
