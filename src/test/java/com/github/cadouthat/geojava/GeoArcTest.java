@@ -21,7 +21,7 @@ public class GeoArcTest {
     }
 
     @Test
-    public void testShortArc() {
+    public void testShortLength() {
         assertArcLength(40.7623756, -73.9961386, 40.7618880, -73.9953661, 84.7);
     }
 
@@ -31,32 +31,33 @@ public class GeoArcTest {
     }
 
     @Test
-    public void testPoleToPole() {
+    public void testPoleToPoleLength() {
         assertArcLength(90, 0, -90, 0, EARTH_CIRCUM_METRES / 2);
     }
 
     @Test
-    public void testAcrossPrimeMeridian() {
+    public void testAcrossPrimeMeridianLength() {
         assertArcLength(27.2204411, -81.3867188, 58.8468166, 29.6269083, 8551560);
     }
 
     @Test
-    public void testAcross180thMeridian() {
+    public void testAcross180thMeridianLength() {
         assertArcLength(45.837895, 126.492845, 16.333099, -96.541917, 11861180);
     }
 
     @Test
-    public void testAcrossNorthPole() {
+    public void testAcrossNorthPoleLength() {
         assertArcLength(40, 120, 80, -60, 6671370);
     }
 
     @Test
-    public void testAcrossSouthPole() {
+    public void testAcrossSouthPoleLength() {
         assertArcLength(-40, 120, -80, -60, 6671370);
     }
 
     @Test
-    public void testAcrossEquator() {
+    public void testAcrossEquatorLength() {
         assertArcLength(40, 120, -20, 140, 6986360);
     }
+
 }
