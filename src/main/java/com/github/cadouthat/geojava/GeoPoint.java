@@ -61,4 +61,11 @@ public class GeoPoint {
     public double getLonDegrees() {
         return lon / Math.PI * 180;
     }
+
+    /**
+     * @return latitude/longitude string in decimal degrees
+     */
+    public String toString() {
+        return String.format("%f, %f", this.getLatDegrees(), this.getLonDegrees());
+    }
 }
