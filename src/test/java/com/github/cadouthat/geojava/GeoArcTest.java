@@ -107,4 +107,15 @@ public class GeoArcTest {
         assertNotNull("should intersect", arcA.intersect(arcB));
     }
 
+    @Test
+    public void testIntersectLocation() {
+        GeoArc arcA = new GeoArc(new GeoPoint(1, -50), new GeoPoint(3, 50));
+        GeoArc arcB = new GeoArc(new GeoPoint(2, -50), new GeoPoint(2, 50));
+        GeoPoint expectedPoint = new GeoPoint(3.10965, 0);
+        GeoPoint point = arcA.intersect(arcB);
+        assertNotNull("should intersect", point);
+        assertEquals("should be at expected lat", expectedPoint.getLatDegrees(), point.getLatDegrees(), TOLERANCE_RATIO);
+        assertEquals("should be at expected lon", expectedPoint.getLonDegrees(), point.getLonDegrees(), TOLERANCE_RATIO);
+    }
+
 }
