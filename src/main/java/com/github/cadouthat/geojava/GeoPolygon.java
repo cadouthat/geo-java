@@ -21,10 +21,6 @@ public class GeoPolygon {
      */
     List<GeoPoint> vertices;
 
-    public GeoPolygon() {
-        this.vertices = new ArrayList<>();
-    }
-
     public GeoPolygon(List<GeoPoint> vertices) {
         this.vertices = new ArrayList<>(vertices);
     }
