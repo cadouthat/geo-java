@@ -38,7 +38,7 @@ public class GeoPolygon {
     }
 
     /**
-     * @return true if the given point lies inside the polygon
+     * @return true if the given point lies inside the polygon, based on the even-odd rule
      */
     public boolean contains(GeoPoint point) {
         // Fewer than 3 vertices do not define a polygon and cannot contain anything
