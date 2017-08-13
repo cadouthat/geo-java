@@ -85,12 +85,16 @@ public class GeoArc {
         Vector3D vA = Vector3D.crossProduct(p1, p2);
         Vector3D vB = Vector3D.crossProduct(p3, p4);
 
+        // Zero vector indicates antipodal points, which have no solution
+        if (vA.getNormSq() <= 0) return null;
+        if (vB.getNormSq() <= 0) return null;
+
         // Determine line where planes intersect (which lies between points of circle intersection)
-        Vector3D v = Vector3D.crossProduct(vA, vB);
+        Vector3D v = Vector3D.crossProduct(vA.normalize(), vB.normalize());
         double vLenSq = v.getNormSq();
 
-        // A zero vector may result from antipodal points or arcs on the same plane, both have no solution
-        if (vLenSq < TOLERANCE * TOLERANCE) return null;
+        // Zero vector indicates arcs on the same plane, which would have infinite solutions
+        if (vLenSq <= 0) return null;
 
         // Normalize to unit length, which will result in a point on the sphere surface
         v = v.scalarMultiply(1 / Math.sqrt(vLenSq));

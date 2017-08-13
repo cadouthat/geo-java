@@ -84,23 +84,6 @@ public class GeoArcTest {
     }
 
     @Test
-    public void testNonIntersectAntipodes() {
-        GeoArc arcA = new GeoArc(new GeoPoint(90, 150), new GeoPoint(-90, 150));
-        GeoArc arcB = new GeoArc(new GeoPoint(0, 140), new GeoPoint(0, 160));
-        assertNull("vertical antipodes should have no solution", arcA.intersect(arcB));
-        arcA = new GeoArc(new GeoPoint(0, 0), new GeoPoint(0, 180));
-        arcB = new GeoArc(new GeoPoint(-15, 100), new GeoPoint(15, 100));
-        assertNull("horizontal antipodes should have no solution", arcA.intersect(arcB));
-    }
-
-    @Test
-    public void testNonIntersectCoplanar() {
-        GeoArc arcA = new GeoArc(new GeoPoint(15, 0), new GeoPoint(15, 15));
-        GeoArc arcB = new GeoArc(new GeoPoint(15, 5), new GeoPoint(15, 20));
-        assertNull("should have infinite intersections", arcA.intersect(arcB));
-    }
-
-    @Test
     public void testIntersectNearCoplanar() {
         GeoArc arcA = new GeoArc(new GeoPoint(16, 0), new GeoPoint(14, 50));
         GeoArc arcB = new GeoArc(new GeoPoint(15, 0), new GeoPoint(15, 50));
