@@ -93,4 +93,37 @@ public class GeoPolygonTest {
 
         assertInnerOuter(quad, inner, outer);
     }
+
+    @Test
+    public void testSeattle() {
+        GeoPolygon seattle = new GeoPolygon(
+                new GeoPoint(47.736389, -122.377089),
+                new GeoPoint(47.735466, -122.285765),
+                new GeoPoint(47.682331, -122.245253),
+                new GeoPoint(47.647186, -122.274779),
+                new GeoPoint(47.496164, -122.244567),
+                new GeoPoint(47.525847, -122.304991),
+                new GeoPoint(47.494772, -122.372969),
+                new GeoPoint(47.577752, -122.423781),
+                new GeoPoint(47.599055, -122.341384),
+                new GeoPoint(47.661987, -122.437514)
+        );
+
+        GeoPoint[] inner = new GeoPoint[]{
+                new GeoPoint(47.681869, -122.295378),
+                new GeoPoint(47.649961, -122.370909),
+                new GeoPoint(47.613406, -122.306365),
+                new GeoPoint(47.552733, -122.365416),
+                new GeoPoint(47.641635, -122.334517)
+        };
+        GeoPoint[] outer = new GeoPoint[]{
+                new GeoPoint(47.615258, -122.415541),
+                new GeoPoint(47.745625, -122.337950),
+                new GeoPoint(47.601833, -122.264479),
+                new GeoPoint(47.485029, -122.311858),
+                new GeoPoint(47.747814, -122.036922)
+        };
+
+        assertInnerOuter(seattle, inner, outer);
+    }
 }

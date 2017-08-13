@@ -18,7 +18,13 @@ public class GeoPolygon {
      * Any point known to be outside the polygon, used as the destination for even-odd intersection tests,
      * defaults to the North Pole
      */
-    GeoPoint externalReference = new GeoPoint(90, 0);
+    GeoPoint externalReferenceA = new GeoPoint(90, 0);
+
+    /**
+     * Another point known to be outside the polygon, used as an alternative reference point whenever
+     * it is closer to the point being tested, defaults to the South Pole
+     */
+    GeoPoint externalReferenceB = new GeoPoint(-90, 0);
 
     /**
      * Vertices of the polygon in sequence around the perimeter, the last will be connected to the first to
@@ -34,8 +40,12 @@ public class GeoPolygon {
         this(Arrays.asList(vertices));
     }
 
-    public void setExternalReference(GeoPoint externalReference) {
-        this.externalReference = externalReference;
+    public void setExternalReferenceA(GeoPoint externalReferenceA) {
+        this.externalReferenceA = externalReferenceA;
+    }
+
+    public void setExternalReferenceB(GeoPoint externalReferenceB) {
+        this.externalReferenceB = externalReferenceB;
     }
 
     /**
@@ -43,10 +53,12 @@ public class GeoPolygon {
      */
     public boolean contains(GeoPoint point) {
         // Fewer than 3 vertices do not define a polygon and cannot contain anything
-        if (vertices.size() < 0) return false;
+        if (vertices.size() < 3) return false;
 
-        // The arc between the point and external reference will be used for testing
-        GeoArc pointArc = new GeoArc(point, externalReference);
+        // The shortest arc between the point and external references will be used for testing
+        GeoArc pointArcA = new GeoArc(point, externalReferenceA);
+        GeoArc pointArcB = new GeoArc(point, externalReferenceB);
+        GeoArc pointArc = (pointArcA.length() < pointArcB.length()) ? pointArcA : pointArcB;
 
         GeoPoint[] intersectionPoints = new GeoPoint[vertices.size()];
         for (int i = 0; i < vertices.size(); i++) {
